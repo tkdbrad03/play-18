@@ -917,7 +917,7 @@ function renderLeaderboard() {
     div.className = `lb-row${rank===0?' highlight':''}`;
     div.innerHTML = `
       <div class="lb-rank ${rankCls}">${rank+1}</div>
-      <div><div class="lb-name">${row.p.name}</div><div class="lb-group">Grp ${row.p.group} · ${row.holesPlayed}/18 holes</div></div>
+      <div><div class="lb-name" onclick="showPlayerScorecard(${row.pIdx})" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:3px;">${row.p.name}</div><div class="lb-group">Grp ${row.p.group} · ${row.holesPlayed}/18 holes</div></div>
       <div class="lb-val">${row.holesPlayed > 0 ? row.totalNet : '—'}</div>
       <div class="lb-val skins">${row.skins}</div>
       <div class="lb-val ctp">${row.ctpWins}</div>`;
@@ -1011,6 +1011,73 @@ function renderLeaderboard() {
       : `Round complete · Total paid out: $${totalPaid.toFixed(2)}`;
     payoutsEl.appendChild(note);
   }
+}
+function showPlayerScorecard(pIdx) {
+  const p = gameData.players[pIdx];
+  const totalStrokes = Math.round(p.hcp * gameData.hcpPct / 100);
+
+  let rows = '';
+  let totalGross = 0, totalNet = 0, holesPlayed = 0;
+
+  gameData.holes.forEach((h, i) => {
+    const hNum = i + 1;
+    const key = `p_${pIdx}_h_${hNum}`;
+    const gross = gameData.scores[key];
+    const strokes = getStrokesOnHole(p.hcp, gameData.hcpPct, i, p.gender || 'M', gameData.holes);
+    const net = gross !== undefined ? gross - strokes : null;
+
+    if (gross !== undefined) { totalGross += gross; totalNet += net; holesPlayed++; }
+
+    rows += `
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:8px 4px;font-family:'Bebas Neue',sans-serif;font-size:16px;color:#1f4236;">${hNum}</td>
+        <td style="padding:8px 4px;text-align:center;font-size:13px;color:#8a9a8e;">${h.par}</td>
+        <td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:700;color:#1f4236;">${gross !== undefined ? gross : '—'}</td>
+        <td style="padding:8px 4px;text-align:center;font-size:13px;color:#c9a961;font-weight:700;">${strokes > 0 ? '+'+strokes : '—'}</td>
+        <td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:700;color:#3a7a5e;">${net !== null ? net : '—'}</td>
+      </tr>`;
+  });
+
+  const overlay = document.createElement('div');
+  overlay.id = 'scorecard-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'background:white;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;';
+
+  sheet.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#1f4236;">${p.name}</div>
+      <button onclick="document.getElementById('scorecard-overlay').remove()"
+        style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕</button>
+    </div>
+    <div style="font-size:12px;color:#8a9a8e;margin-bottom:16px;">
+      Group ${p.group} · HCP ${p.hcp} · ${p.gender||'M'} · ${totalStrokes} strokes · ${holesPlayed}/18 holes played
+    </div>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f7f3ec;">
+          <th style="padding:8px 4px;text-align:left;font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Hole</th>
+          <th style="padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Par</th>
+          <th style="padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Gross</th>
+          <th style="padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Strokes</th>
+          <th style="padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Net</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr style="background:#f7f3ec;border-top:2px solid #e8ede9;">
+          <td colspan="2" style="padding:10px 4px;font-weight:700;font-size:13px;color:#1f4236;">TOTAL</td>
+          <td style="padding:10px 4px;text-align:center;font-weight:700;font-size:16px;color:#1f4236;">${holesPlayed > 0 ? totalGross : '—'}</td>
+          <td></td>
+          <td style="padding:10px 4px;text-align:center;font-weight:700;font-size:16px;color:#3a7a5e;">${holesPlayed > 0 ? totalNet : '—'}</td>
+        </tr>
+      </tfoot>
+    </table>`;
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 
 function showLbTab(tab) {
