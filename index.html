@@ -236,7 +236,7 @@ input:focus, select:focus { border-color: var(--green); }
 <div id="admin-screen" class="screen">
   <div id="admin-status"></div>
   <div class="card" id="players-section">
-    <div class="card-title">👥 Players &amp; Handicaps</div>
+    <div class="card-title">Players &amp; Handicaps</div>
     <div style="display:grid;grid-template-columns:1fr 70px 90px 36px;gap:8px;padding:4px 0 8px;">
       <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Name</div>
       <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">HCP</div>
@@ -248,7 +248,7 @@ input:focus, select:focus { border-color: var(--green); }
   </div>
 
   <div class="card">
-    <div class="card-title">🏌️ Hole Setup</div>
+    <div class="card-title">Hole Setup</div>
     <div class="text-sm mb-8">Par, stroke index (1=hardest), and check ⛳ for CTP holes.</div>
     <div style="display:grid;grid-template-columns:38px 58px 68px 44px;gap:6px;padding:4px 4px 8px;font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">
       <div>Hole</div><div>Par</div><div>M SI</div><div>W SI</div><div>CTP</div>
@@ -257,7 +257,7 @@ input:focus, select:focus { border-color: var(--green); }
   </div>
 
   <div class="card">
-    <div class="card-title">💰 Stakes</div>
+    <div class="card-title">Stakes</div>
     <div class="form-grid">
       <div class="form-row">
         <label>Skins Buy-in ($)</label>
@@ -514,6 +514,7 @@ function showAdminLocked(data) {
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
       <button class="btn-sm btn-outline" onclick="editCtpHoles()" style="width:100%;padding:12px;text-align:center;font-size:14px;">⛳ Edit CTP Holes</button>
+      <button class="btn-sm btn-outline" onclick="clearScoresOnly()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🔄 Clear Scores Only</button>
       <button class="btn-sm btn-danger" onclick="resetRound()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🗑️ Reset Entire Round</button>
     </div>`;
   document.querySelectorAll('#admin-screen .card').forEach((c,i) => { if(i>0) c.style.display='none'; });
@@ -600,6 +601,18 @@ async function resetRound() {
   if (!confirm('Reset the round? ALL scores will be permanently deleted.')) return;
   await saveData({ game: 'play18' });
   location.reload();
+}
+  async function clearScoresOnly() {
+  if (!confirm('Clear all scores and CTP winners? Players and hole setup will be kept.')) return;
+  const data = await fetchData();
+  data.scores = {};
+  data.ctpWinners = {};
+  const ok = await saveData(data);
+  if (ok) {
+    showStatus('admin-status', 'success', 'Scores cleared. Players and holes intact.');
+  } else {
+    showStatus('admin-status', 'error', 'Failed. Try again.');
+  }
 }
 
 // ── SCOREKEEPER ──
