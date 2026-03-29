@@ -1049,7 +1049,9 @@ function showPlayerScorecard(pIdx) {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#1f4236;">${p.name}</div>
       <button onclick="document.getElementById('scorecard-overlay').remove()"
-        style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕</button>
+    style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕</button>
+<button onclick="editPlayerGroup(${pIdx})"
+    style="background:#e0f0e8;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#1f4236;margin-left:8px;">Move Group</button>
     </div>
     <div style="font-size:12px;color:#8a9a8e;margin-bottom:16px;">
       Group ${p.group} · HCP ${p.hcp} · ${p.gender||'M'} · ${totalStrokes} strokes · ${holesPlayed}/18 holes played
@@ -1101,6 +1103,52 @@ function editScore(pIdx, hNum) {
       alert('Save failed. Try again.');
     }
   });
+}
+function editPlayerGroup(pIdx) {
+  const p = gameData.players[pIdx];
+  const numGroups = gameData.numGroups || 4;
+  let groupOpts = '';
+  for (let g = 1; g <= numGroups; g++) {
+    groupOpts += `<option value="${g}" ${p.group===g?'selected':''}">Group ${g}</option>`;
+  }
+  const pin = prompt('Enter Admin PIN to move player:');
+  if (pin !== '1975') {
+    if (pin !== null) alert('Incorrect PIN.');
+    return;
+  }
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  sheet.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:320px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#1f4236;letter-spacing:2px;margin-bottom:4px;">Move Player</div>
+      <div style="font-size:13px;color:#8a9a8e;margin-bottom:16px;">${p.name} is currently in Group ${p.group}</div>
+      <label style="font-size:12px;font-weight:700;color:#8a9a8e;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block;">Move to Group</label>
+      <select id="new-group-select" style="width:100%;padding:12px;border:2px solid #e8ede9;border-radius:10px;font-size:16px;font-family:'DM Sans',sans-serif;color:#1f4236;margin-bottom:16px;">
+        ${groupOpts}
+      </select>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('div[style]').remove()" 
+          style="flex:1;padding:12px;background:#f0f0f0;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+        <button onclick="savePlayerGroup(${pIdx})"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#1f4236,#2a5a47);color:#c9a961;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(sheet);
+}
+
+async function savePlayerGroup(pIdx) {
+  const select = document.getElementById('new-group-select');
+  const newGroup = parseInt(select.value);
+  gameData.players[pIdx].group = newGroup;
+  const ok = await saveData(gameData);
+  if (ok) {
+    document.querySelector('div[style*="z-index:10000"]').remove();
+    document.getElementById('scorecard-overlay').remove();
+    showPlayerScorecard(pIdx);
+    showStatus('lb-content', 'success', `${gameData.players[pIdx].name} moved to Group ${newGroup}.`);
+  } else {
+    alert('Save failed. Try again.');
+  }
 }
 
 function showLbTab(tab) {
