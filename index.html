@@ -190,21 +190,21 @@ input:focus, select:focus { border-color: var(--green); }
   <div class="role-tagline">The Game Within the Game</div>
   <div class="role-cards">
     <div class="role-card" onclick="enterRole('admin')">
-      <div class="role-icon">⚙️</div>
+      <div class="role-icon"></div>
       <div>
         <div class="role-label">Admin Setup</div>
         <div class="role-desc">Add players, handicaps &amp; hole info</div>
       </div>
     </div>
     <div class="role-card" onclick="showGroupSelect()">
-      <div class="role-icon">⛳</div>
+      <div class="role-icon"></div>
       <div>
         <div class="role-label">Scorekeeper</div>
         <div class="role-desc">Enter scores for your group</div>
       </div>
     </div>
     <div class="role-card" onclick="enterRole('leaderboard')">
-      <div class="role-icon">🏆</div>
+      <div class="role-icon"></div>
       <div>
         <div class="role-label">Leaderboard</div>
         <div class="role-desc">Live standings &amp; payouts</div>
@@ -499,18 +499,76 @@ async function loadAdminData() {
 }
 
 function showAdminLocked(data) {
+  const ctpCount = data.holes.filter(h=>h.ctp).length;
   document.getElementById('players-section').innerHTML = `
     <div class="locked-banner">
       <div class="icon">🔒</div>
-      <div><div class="label">Round is Live</div><div class="text">${data.players.length} players · ${data.holes.filter(h=>h.ctp).length} CTP holes · Skins $${data.skinsBuyin} · CTP $${data.ctpBuyin}</div></div>
+      <div><div class="label">Round is Live</div><div class="text">${data.players.length} players · ${ctpCount} CTP hole${ctpCount!==1?'s':''} · Skins $${data.skinsBuyin} · CTP $${data.ctpBuyin}</div></div>
     </div>
-    <div class="text-sm text-center mb-8">Scores are being entered.</div>
-    <button class="btn-sm btn-danger" onclick="resetRound()">🗑️ Reset Entire Round</button>`;
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+      <button class="btn-sm btn-outline" onclick="editCtpHoles()" style="width:100%;padding:12px;text-align:center;font-size:14px;">⛳ Edit CTP Holes</button>
+      <button class="btn-sm btn-danger" onclick="resetRound()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🗑️ Reset Entire Round</button>
+    </div>`;
   document.querySelectorAll('#admin-screen .card').forEach((c,i) => { if(i>0) c.style.display='none'; });
   const lockBtn = document.querySelector('#admin-screen .btn.btn-primary');
   if (lockBtn) lockBtn.style.display='none';
   const hint = document.getElementById('admin-hint');
   if (hint) hint.style.display='none';
+}
+
+async function editCtpHoles() {
+  const data = await fetchData();
+  const currentHoles = data.holes || [];
+  const overlay = document.createElement('div');
+  overlay.id = 'ctp-edit-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'background:white;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;';
+  let rows = '';
+  currentHoles.forEach((h, i) => {
+    rows += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+      <div><span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#1f4236;letter-spacing:1px;">Hole ${i+1}</span>
+      <span style="font-size:12px;color:#8a9a8e;margin-left:8px;">Par ${h.par} · SI #${h.si}</span></div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <span style="font-size:13px;color:#8a9a8e;">CTP</span>
+        <input type="checkbox" id="ctp-edit-${i}" ${h.ctp?'checked':''}
+          style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
+      </label></div>`;
+  });
+  sheet.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#1f4236;">⛳ Edit CTP Holes</div>
+      <button onclick="document.getElementById('ctp-edit-overlay').remove()"
+        style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕ Cancel</button>
+    </div>
+    <div style="font-size:13px;color:#8a9a8e;margin-bottom:14px;">Check the holes where CTP applies. Scores already saved are not affected.</div>
+    <div>${rows}</div>
+    <button onclick="saveCtpEdits()"
+      style="margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg,#1f4236,#2a5a47);color:#c9a961;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;">
+      Save CTP Holes
+    </button>`;
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay._data = data;
+}
+
+async function saveCtpEdits() {
+  const overlay = document.getElementById('ctp-edit-overlay');
+  if (!overlay) return;
+  const data = overlay._data;
+  data.holes.forEach((h, i) => {
+    const cb = document.getElementById('ctp-edit-' + i);
+    if (cb) h.ctp = cb.checked;
+  });
+  const ok = await saveData(data);
+  if (ok) {
+    overlay.remove();
+    showAdminLocked(data);
+    showStatus('admin-status', 'success', data.holes.filter(h=>h.ctp).length + ' CTP holes saved.');
+  } else {
+    showStatus('admin-status', 'error', 'Save failed. Try again.');
+  }
 }
 
 async function saveAndLock() {
