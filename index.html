@@ -759,8 +759,10 @@ function liveNet(input, strokes, labelId) {
 
 function adjustScore(inputId, delta, strokes, labelId) {
   const inp = document.getElementById(inputId);
-  const cur = parseInt(inp.value) || 0;
-  inp.value = Math.max(1, cur + delta);
+  const cur = parseInt(inp.value) || parseInt(inp.dataset.val) || 0;
+  const next = Math.max(1, cur + delta);
+  inp.value = next;
+  inp.dataset.val = next;
   liveNet(inp, strokes, labelId);
 }
 
@@ -781,8 +783,9 @@ async function saveHole() {
   let allFilled = true;
   myPlayers.forEach(p => {
     const pIdx = gameData.players.indexOf(p);
-    const val = parseInt(document.getElementById(`inp_${pIdx}`).value);
-    if (isNaN(val) || val < 1) { allFilled = false; return; }
+    const el = document.getElementById(`inp_${pIdx}`);
+const val = parseInt(el.value) || parseInt(el.dataset.val) || 0;
+if (isNaN(val) || val < 1) { allFilled = false; return; }
     if (!gameData.scores) gameData.scores = {};
     gameData.scores[`p_${pIdx}_h_${currentHole}`] = val;
   });
