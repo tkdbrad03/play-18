@@ -452,6 +452,7 @@ function buildHolesUI() {
       <div style="display:flex;align-items:center;justify-content:center;">
         <input type="checkbox" ${h.ctp?'checked':''} onchange="holes[${i}].ctp=this.checked" style="width:20px;height:20px;padding:0;cursor:pointer;border-radius:4px;"/>
       </div>`;
+    list.appendChild(row);
   });
 }
 
