@@ -815,7 +815,9 @@ function calculateSkins(gd) {
 
   for (let h = 1; h <= 18; h++) {
     const nets = gd.players.map((_,i) => getNetScore(i, h, gd));
-    const allIn = nets.every(n => n !== null);
+    const entered = nets.filter(n => n !== null);
+    const allIn = entered.length === gd.players.length;
+    console.log(`Hole ${h}: ${entered.length}/${gd.players.length} players in`);
     if (!allIn) { results.push({ hole:h, winner:null, pending:true, worth:0 }); continue; }
     const minNet = Math.min(...nets);
     const winners = nets.reduce((a,n,i) => n===minNet?[...a,i]:a, []);
