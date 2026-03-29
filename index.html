@@ -189,7 +189,7 @@ input:focus, select:focus { border-color: var(--green); }
   <img src="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png" alt="Play 18" style="width:190px;height:auto;margin-bottom:20px;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.5));"/>
   <div class="role-tagline">The Game Within the Game</div>
   <div class="role-cards">
-    <div class="role-card" onclick="enterRole('admin')">
+    <div class="role-card" onclick="promptAdminPin()">
       <div class="role-icon"></div>
       <div>
         <div class="role-label">Admin Setup</div>
@@ -334,13 +334,13 @@ input:focus, select:focus { border-color: var(--green); }
       <div class="text-sm text-center mt-8" id="holes-complete-label"></div>
     </div>
     <div id="lb-skins" class="lb-tab" style="display:none;">
-      <div class="card"><div class="card-title">🏌️ Skins by Hole</div><div id="skins-detail"></div></div>
+      <div class="card"><div class="card-title">Skins by Hole</div><div id="skins-detail"></div></div>
     </div>
     <div id="lb-ctp" class="lb-tab" style="display:none;">
-      <div class="card"><div class="card-title">⛳ Closest to Pin</div><div id="ctp-detail"></div></div>
+      <div class="card"><div class="card-title">Closest to Pin</div><div id="ctp-detail"></div></div>
     </div>
     <div id="lb-payouts" class="lb-tab" style="display:none;">
-      <div class="card"><div class="card-title">💰 Payout Summary</div><div id="payouts-detail"></div></div>
+      <div class="card"><div class="card-title">Payout Summary</div><div id="payouts-detail"></div></div>
     </div>
   </div>
 </div>
@@ -387,6 +387,14 @@ function showGroupSelect() {
     });
   });
   document.getElementById('group-select').style.display = 'block';
+}
+  function promptAdminPin() {
+  const pin = prompt('Enter Admin PIN:');
+  if (pin === '1975') {
+    enterRole('admin');
+  } else if (pin !== null) {
+    alert('Incorrect PIN.');
+  }
 }
 
 function enterRole(r, group) {
