@@ -521,7 +521,7 @@ function showAdminLocked(data) {
       <div><div class="label">Round is Live</div><div class="text">${data.players.length} players · ${ctpCount} CTP hole${ctpCount!==1?'s':''} · Skins $${data.skinsBuyin} · CTP $${data.ctpBuyin}</div></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
-      <button class="btn-sm btn-outline" onclick="editCtpHoles()" style="width:100%;padding:12px;text-align:center;font-size:14px;">⛳ Edit CTP Holes</button>
+      <button class="btn-sm btn-outline" onclick="editCtpHoles()" style="width:100%;padding:12px;text-align:center;font-size:14px;">⛳ Edit Hole Setup</button>
       <button class="btn-sm btn-outline" onclick="clearScoresOnly()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🔄 Clear Scores Only</button>
       <button class="btn-sm btn-danger" onclick="resetRound()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🗑️ Reset Entire Round</button>
     </div>`;
@@ -542,26 +542,46 @@ async function editCtpHoles() {
   sheet.style.cssText = 'background:white;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;';
   let rows = '';
   currentHoles.forEach((h, i) => {
-    rows += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">
-      <div><span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#1f4236;letter-spacing:1px;">Hole ${i+1}</span>
-      <span style="font-size:12px;color:#8a9a8e;margin-left:8px;">Par ${h.par} · SI #${h.si}</span></div>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <span style="font-size:13px;color:#8a9a8e;">CTP</span>
-        <input type="checkbox" id="ctp-edit-${i}" ${h.ctp?'checked':''}
-          style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
-      </label></div>`;
+    rows += `
+      <div style="padding:10px 0;border-bottom:1px solid #f0f0f0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#1f4236;letter-spacing:1px;margin-bottom:8px;">Hole ${i+1}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 44px;gap:8px;align-items:center;">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;margin-bottom:4px;">Par</div>
+            <input type="number" id="edit-par-${i}" min="3" max="6" value="${h.par}"
+              style="width:100%;padding:8px;border:2px solid #e8ede9;border-radius:8px;font-size:15px;text-align:center;font-family:'DM Sans',sans-serif;"/>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;margin-bottom:4px;">M SI</div>
+            <input type="number" id="edit-si-${i}" min="1" max="18" value="${h.si}"
+              style="width:100%;padding:8px;border:2px solid #e8ede9;border-radius:8px;font-size:15px;text-align:center;font-family:'DM Sans',sans-serif;"/>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;margin-bottom:4px;">W SI</div>
+            <input type="number" id="edit-siw-${i}" min="1" max="18" value="${h.siW||h.si}"
+              style="width:100%;padding:8px;border:2px solid #e8ede9;border-radius:8px;font-size:15px;text-align:center;font-family:'DM Sans',sans-serif;"/>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;margin-bottom:4px;">CTP</div>
+            <div style="display:flex;align-items:center;justify-content:center;height:38px;">
+              <input type="checkbox" id="ctp-edit-${i}" ${h.ctp?'checked':''}
+                style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
+            </div>
+          </div>
+        </div>
+      </div>`;
   });
   sheet.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#1f4236;">⛳ Edit CTP Holes</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#1f4236;">⛳ Edit Hole Setup</div>
       <button onclick="document.getElementById('ctp-edit-overlay').remove()"
         style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕ Cancel</button>
     </div>
-    <div style="font-size:13px;color:#8a9a8e;margin-bottom:14px;">Check the holes where CTP applies. Scores already saved are not affected.</div>
+    <div style="font-size:13px;color:#8a9a8e;margin-bottom:14px;">Edit par, stroke indexes, and CTP holes. Scores already saved are not affected.</div>
     <div>${rows}</div>
     <button onclick="saveCtpEdits()"
       style="margin-top:20px;width:100%;padding:14px;background:linear-gradient(135deg,#1f4236,#2a5a47);color:#c9a961;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;">
-      Save CTP Holes
+      Save Hole Setup
     </button>`;
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
@@ -574,14 +594,20 @@ async function saveCtpEdits() {
   if (!overlay) return;
   const data = overlay._data;
   data.holes.forEach((h, i) => {
-    const cb = document.getElementById('ctp-edit-' + i);
-    if (cb) h.ctp = cb.checked;
+    const par = document.getElementById(`edit-par-${i}`);
+    const si = document.getElementById(`edit-si-${i}`);
+    const siw = document.getElementById(`edit-siw-${i}`);
+    const ctp = document.getElementById(`ctp-edit-${i}`);
+    if (par) h.par = +par.value;
+    if (si) h.si = +si.value;
+    if (siw) h.siW = +siw.value;
+    if (ctp) h.ctp = ctp.checked;
   });
   const ok = await saveData(data);
   if (ok) {
     overlay.remove();
     showAdminLocked(data);
-    showStatus('admin-status', 'success', data.holes.filter(h=>h.ctp).length + ' CTP holes saved.');
+    showStatus('admin-status', 'success', 'Hole setup updated successfully.');
   } else {
     showStatus('admin-status', 'error', 'Save failed. Try again.');
   }
