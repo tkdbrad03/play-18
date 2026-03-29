@@ -522,6 +522,7 @@ function showAdminLocked(data) {
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
       <button class="btn-sm btn-outline" onclick="editCtpHoles()" style="width:100%;padding:12px;text-align:center;font-size:14px;">⛳ Edit Hole Setup</button>
+      <button class="btn-sm btn-outline" onclick="collectPayments()" style="width:100%;padding:12px;text-align:center;font-size:14px;">💵 Collect Payments</button>
       <button class="btn-sm btn-outline" onclick="clearScoresOnly()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🔄 Clear Scores Only</button>
       <button class="btn-sm btn-danger" onclick="resetRound()" style="width:100%;padding:12px;text-align:center;font-size:14px;">🗑️ Reset Entire Round</button>
     </div>`;
@@ -612,7 +613,122 @@ async function saveCtpEdits() {
     showStatus('admin-status', 'error', 'Save failed. Try again.');
   }
 }
+async function collectPayments() {
+  const pin = prompt('Enter Admin PIN:');
+  if (pin !== '1975') { if (pin !== null) alert('Incorrect PIN.'); return; }
+  const data = await fetchData();
+  if (!data.payments) data.payments = {};
+  const skinsBuyin = data.skinsBuyin || 20;
+  const ctpBuyin = data.ctpBuyin || 10;
+  const appFee = 2;
 
+  const overlay = document.createElement('div');
+  overlay.id = 'payments-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'background:white;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;';
+
+  function buildSheet() {
+    let rows = '';
+    let skinsPaid = 0, ctpPaid = 0, appPaid = 0;
+    data.players.forEach((p, i) => {
+      const pay = data.payments[i] || { skins: false, ctp: false, app: false };
+      const allPaid = pay.skins && pay.ctp && pay.app;
+      if (pay.skins) skinsPaid++;
+      if (pay.ctp) ctpPaid++;
+      if (pay.app) appPaid++;
+      rows += `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+          <div>
+            <div style="font-weight:600;font-size:14px;color:#1f4236;">${p.name}</div>
+            <div style="font-size:11px;color:#8a9a8e;">Grp ${p.group}</div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+              <span style="font-size:9px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">$${skinsBuyin}</span>
+              <input type="checkbox" data-pIdx="${i}" data-type="skins" ${pay.skins?'checked':''}
+                style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
+            </label>
+            <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+              <span style="font-size:9px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">$${ctpBuyin}</span>
+              <input type="checkbox" data-pIdx="${i}" data-type="ctp" ${pay.ctp?'checked':''}
+                style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
+            </label>
+            <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+              <span style="font-size:9px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">App $${appFee}</span>
+              <input type="checkbox" data-pIdx="${i}" data-type="app" ${pay.app?'checked':''}
+                style="width:22px;height:22px;cursor:pointer;accent-color:#1f4236;"/>
+            </label>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${allPaid?'#3a7a5e':'#c0392b'};min-width:32px;text-align:right;">
+              ${allPaid ? '✓' : '✗'}
+            </div>
+          </div>
+        </div>`;
+    });
+
+    const totalPlayers = data.players.length;
+    const allPaidCount = data.players.filter((_,i) => {
+      const pay = data.payments[i] || {};
+      return pay.skins && pay.ctp && pay.app;
+    }).length;
+
+    sheet.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#1f4236;">💵 Collect Payments</div>
+        <button onclick="document.getElementById('payments-overlay').remove()"
+          style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;color:#555;">✕ Done</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="background:#f7f3ec;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Skins Pot</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1f4236;">$${skinsPaid * skinsBuyin}</div>
+          <div style="font-size:10px;color:#8a9a8e;">of $${totalPlayers * skinsBuyin}</div>
+        </div>
+        <div style="background:#f7f3ec;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">CTP Pot</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1f4236;">$${ctpPaid * ctpBuyin}</div>
+          <div style="font-size:10px;color:#8a9a8e;">of $${totalPlayers * ctpBuyin}</div>
+        </div>
+        <div style="background:#fff3d0;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#8a6500;text-transform:uppercase;">App Fees</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#8a6500;">$${appPaid * appFee}</div>
+          <div style="font-size:10px;color:#8a9a8e;">of $${totalPlayers * appFee}</div>
+        </div>
+      </div>
+      ${allPaidCount < totalPlayers ?
+        `<div style="background:#fdeaea;border-radius:10px;padding:10px;text-align:center;margin-bottom:12px;font-size:13px;font-weight:600;color:#c0392b;">
+          ⚠️ ${totalPlayers - allPaidCount} player${totalPlayers-allPaidCount!==1?'s':''} not fully paid — round is locked
+        </div>` :
+        `<div style="background:#e8f8f0;border-radius:10px;padding:10px;text-align:center;margin-bottom:12px;font-size:13px;font-weight:600;color:#1e7a4a;">
+          ✓ All players paid — round is unlocked
+        </div>`
+      }
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 32px;gap:8px;padding:6px 0;margin-bottom:4px;">
+        <div style="font-size:10px;font-weight:700;color:#8a9a8e;text-transform:uppercase;">Player</div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div id="payment-rows">${rows}</div>`;
+
+    // Attach checkbox listeners
+    sheet.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', async () => {
+        const idx = +cb.dataset.pidx;
+        const type = cb.dataset.type;
+        if (!data.payments[idx]) data.payments[idx] = { skins: false, ctp: false, app: false };
+        data.payments[idx][type] = cb.checked;
+        await saveData(data);
+        buildSheet();
+      });
+    });
+  }
+
+  buildSheet();
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
 async function saveAndLock() {
   const validPlayers = players.filter(p => p.name.trim());
   if (validPlayers.length < 2) { showStatus('admin-status','error','Add at least 2 players.'); return; }
@@ -624,7 +740,7 @@ async function saveAndLock() {
     skinsBuyin: +document.getElementById('skins-buyin').value,
     ctpBuyin: +document.getElementById('ctp-buyin').value,
     hcpPct: +document.getElementById('hcp-pct').value,
-    scores: {}, ctpWinners: {}
+    scores: {}, ctpWinners: {}, payments: {}
   };
   const ok = await saveData(data);
   if (ok) { showStatus('admin-status','success','Round locked! Share this page with your players.'); showAdminLocked(data); }
@@ -660,8 +776,26 @@ async function loadScorekeeperData() {
       document.getElementById('sk-loading').innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Admin hasn\'t locked the round yet.<br>Check back soon.</p></div>';
       return;
     }
-    document.getElementById('sk-loading').style.display='none';
-    document.getElementById('sk-content').style.display='block';
+    const payments = gameData.payments || {};
+const allPaid = gameData.players.every((_,i) => {
+  const pay = payments[i] || {};
+  return pay.skins && pay.ctp && pay.app;
+});
+if (!allPaid) {
+  const unpaidCount = gameData.players.filter((_,i) => {
+    const pay = payments[i] || {};
+    return !(pay.skins && pay.ctp && pay.app);
+  }).length;
+  document.getElementById('sk-loading').innerHTML = `
+    <div class="empty-state">
+      <div class="icon">💵</div>
+      <p style="font-weight:700;color:#1f4236;font-size:16px;margin-bottom:8px;">Payment Pending</p>
+      <p>${unpaidCount} player${unpaidCount!==1?'s':''} not fully paid.<br>See admin to complete payment.</p>
+    </div>`;
+  return;
+}
+document.getElementById('sk-loading').style.display='none';
+document.getElementById('sk-content').style.display='block';
     document.getElementById('sk-group-label').textContent = `Group ${myGroup}`;
 // Start on first incomplete hole for this group
 const myPlayers = gameData.players.filter(p => p.group === myGroup);
