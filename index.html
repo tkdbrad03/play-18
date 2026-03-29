@@ -1032,7 +1032,7 @@ function showPlayerScorecard(pIdx) {
       <tr style="border-bottom:1px solid #f0f0f0;">
         <td style="padding:8px 4px;font-family:'Bebas Neue',sans-serif;font-size:16px;color:#1f4236;">${hNum}</td>
         <td style="padding:8px 4px;text-align:center;font-size:13px;color:#8a9a8e;">${h.par}</td>
-        <td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:700;color:#1f4236;">${gross !== undefined ? gross : '—'}</td>
+        <td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:700;color:#1f4236;cursor:pointer;" onclick="editScore(${pIdx},${hNum})">${gross !== undefined ? gross : '—'}</td>
         <td style="padding:8px 4px;text-align:center;font-size:13px;color:#c9a961;font-weight:700;">${strokes > 0 ? '+'+strokes : '—'}</td>
         <td style="padding:8px 4px;text-align:center;font-size:15px;font-weight:700;color:#3a7a5e;">${net !== null ? net : '—'}</td>
       </tr>`;
@@ -1078,6 +1078,29 @@ function showPlayerScorecard(pIdx) {
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+function editScore(pIdx, hNum) {
+  const p = gameData.players[pIdx];
+  const key = `p_${pIdx}_h_${hNum}`;
+  const current = gameData.scores[key] !== undefined ? gameData.scores[key] : '';
+  const newVal = prompt(`Edit score for ${p.name} — Hole ${hNum}:\n(Current: ${current !== '' ? current : 'not entered'})`, current);
+  if (newVal === null) return; // cancelled
+  const parsed = parseInt(newVal);
+  if (isNaN(parsed) || parsed < 1 || parsed > 15) {
+    alert('Invalid score. Enter a number between 1 and 15.');
+    return;
+  }
+  gameData.scores[key] = parsed;
+  saveData(gameData).then(ok => {
+    if (ok) {
+      // Close and reopen scorecard with updated data
+      document.getElementById('scorecard-overlay').remove();
+      showPlayerScorecard(pIdx);
+      showStatus('lb-content', 'success', `${p.name} hole ${hNum} updated to ${parsed}.`);
+    } else {
+      alert('Save failed. Try again.');
+    }
+  });
 }
 
 function showLbTab(tab) {
