@@ -801,7 +801,6 @@ function getStrokesOnHole(hcp, pct, holeIndex, gender, holesData) {
 function getNetScore(pIdx, holeNum, gd) {
   const key = `p_${pIdx}_h_${holeNum}`;
   if (gd.scores[key] === undefined) return null;
-  console.log(`p${pIdx} h${holeNum} score:`, gd.scores[key], 'holes:', gd.holes ? 'ok' : 'MISSING');
   const p = gd.players[pIdx];
 const strokes = getStrokesOnHole(p.hcp, gd.hcpPct, holeNum - 1, p.gender || 'M', gd.holes);
   return gd.scores[key] - strokes;
