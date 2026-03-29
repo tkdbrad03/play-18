@@ -854,7 +854,6 @@ function calculateSkins(gd) {
   const skinsPerPlayer = {};
   gd.players.forEach((_,i) => skinsPerPlayer[i] = 0);
   const results = [];
-  let carryover = 0;
 
   for (let h = 1; h <= 18; h++) {
     const nets = gd.players.map((_,i) => getNetScore(i, h, gd));
@@ -864,14 +863,11 @@ function calculateSkins(gd) {
     const minNet = Math.min(...nets);
     const winners = nets.reduce((a,n,i) => n===minNet?[...a,i]:a, []);
     if (winners.length === 1) {
-      const worth = carryover + 1;
-      skinsPerPlayer[winners[0]] += worth;
-      results.push({ hole:h, winner:winners[0], carried:carryover>0, carryover, worth, pending:false, push:false });
-      carryover = 0;
-    } else {
-      results.push({ hole:h, winner:null, pending:false, push:true, worth:0 });
-      carryover++;
-    }
+  skinsPerPlayer[winners[0]] += 1;
+  results.push({ hole:h, winner:winners[0], worth:1, pending:false, push:false });
+} else {
+  results.push({ hole:h, winner:null, worth:0, pending:false, push:true });
+}
   }
   return { results, skinsPerPlayer };
 }
@@ -945,16 +941,16 @@ function renderLeaderboard() {
       const name = gameData.players[r.winner].name;
       const dollars = (r.worth * skinValue).toFixed(2);
       div.innerHTML = `
-        <div class="hole-label">HOLE ${r.hole}${ctpMark}</div>
-        <div><div class="skin-winner">${name}</div>${r.carried?`<div class="skin-carry">+${r.carryover} carry</div>`:''}</div>
-        <div class="skin-worth">$${dollars}</div>`;
+  <div class="hole-label">HOLE ${r.hole}${ctpMark}</div>
+  <div><div class="skin-winner">${name}</div></div>
+  <div class="skin-worth">$${dollars}</div>`;
     }
     skinsEl.appendChild(div);
   });
   if (!results.some(r=>r.pending)) {
     const s = document.createElement('div');
     s.className = 'status-banner success mt-8';
-    s.textContent = `${totalSkinsWon} skin${totalSkinsWon!==1?'s':''} won · $${skinValue.toFixed(2)} each · Pot: $${totalSkinsPot}`;
+    s.textContent = `${totalSkinsWon} skin${totalSkinsWon!==1?'s':''} won · ${results.filter(r=>r.push).length} pushes · $${skinValue.toFixed(2)} each · Pot: $${totalSkinsPot}`;
     skinsEl.appendChild(s);
   }
 
