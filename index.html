@@ -637,8 +637,18 @@ async function loadScorekeeperData() {
     document.getElementById('sk-loading').style.display='none';
     document.getElementById('sk-content').style.display='block';
     document.getElementById('sk-group-label').textContent = `Group ${myGroup}`;
-    buildHolePips();
-    renderCurrentHole();
+// Start on first incomplete hole for this group
+const myPlayers = gameData.players.filter(p => p.group === myGroup);
+currentHole = 1;
+for (let h = 1; h <= 18; h++) {
+  const allDone = myPlayers.every(p => {
+    const pIdx = gameData.players.indexOf(p);
+    return gameData.scores[`p_${pIdx}_h_${h}`] !== undefined;
+  });
+  if (!allDone) { currentHole = h; break; }
+}
+buildHolePips();
+renderCurrentHole();
     pollTimer = setInterval(async () => {
   const active = document.activeElement;
   const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'SELECT');
@@ -817,7 +827,6 @@ function calculateSkins(gd) {
     const nets = gd.players.map((_,i) => getNetScore(i, h, gd));
     const entered = nets.filter(n => n !== null);
     const allIn = entered.length === gd.players.length;
-    console.log(`Hole ${h}: ${entered.length}/${gd.players.length} players in`);
     if (!allIn) { results.push({ hole:h, winner:null, pending:true, worth:0 }); continue; }
     const minNet = Math.min(...nets);
     const winners = nets.reduce((a,n,i) => n===minNet?[...a,i]:a, []);
