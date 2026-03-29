@@ -839,7 +839,7 @@ function buildHolePips() {
 function renderCurrentHole() {
   const h = gameData.holes[currentHole-1];
   document.getElementById('hole-title').textContent = `HOLE ${currentHole}`;
-  document.getElementById('hole-meta').textContent = `Par ${h.par} · SI #${h.si}`;
+  document.getElementById('hole-meta').textContent = `Par ${h.par} · M SI #${h.si} · W SI #${h.siW||h.si}`;
   const myPlayers = gameData.players.filter(p => p.group === myGroup);
   const container = document.getElementById('scorecard-players');
   container.innerHTML = '';
