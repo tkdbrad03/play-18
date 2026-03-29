@@ -768,6 +768,7 @@ async function loadScorekeeperData() {
       return;
     }
     // Payment check
+    console.log('Players:', gameData.players?.length, 'Payments:', JSON.stringify(gameData.payments));
     const payments = gameData.payments || {};
     const allPaid = gameData.players.every((_,i) => {
       const pay = payments[i] || {};
