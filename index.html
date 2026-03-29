@@ -797,7 +797,11 @@ if (isNaN(val) || val < 1) { allFilled = false; return; }
   if (ok) {
     showStatus('sk-status','success',`Hole ${currentHole} saved!`);
     buildHolePips();
-    if (currentHole < 18) setTimeout(() => { currentHole++; renderCurrentHole(); buildHolePips(); }, 700);
+    if (currentHole < 18) {
+      setTimeout(() => { currentHole++; renderCurrentHole(); buildHolePips(); }, 700);
+    } else {
+      showStatus('sk-status', 'success', 'Round complete! All 18 holes saved.');
+    }
   } else {
     showStatus('sk-status','error','Save failed. Try again.');
   }
