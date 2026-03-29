@@ -639,7 +639,14 @@ async function loadScorekeeperData() {
     document.getElementById('sk-group-label').textContent = `Group ${myGroup}`;
     buildHolePips();
     renderCurrentHole();
-    pollTimer = setInterval(async () => { gameData = await fetchData(); renderCurrentHole(); buildHolePips(); }, 20000);
+    pollTimer = setInterval(async () => {
+  const active = document.activeElement;
+  const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'SELECT');
+  if (isTyping) return;
+  gameData = await fetchData();
+  renderCurrentHole();
+  buildHolePips();
+}, 20000);
   } catch(e) {
     document.getElementById('sk-loading').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Connection error. Please reload.</p></div>';
   }
