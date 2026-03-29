@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png"/>
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Play 18"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#1f4236"/>
+<title>Play 18</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --green: #1f4236;
+  --green-mid: #2a5a47;
+  --green-light: #3a7a5e;
+  --gold: #c9a961;
+  --gold-light: #e2c97e;
+  --cream: #f7f3ec;
+  --white: #ffffff;
+  --red: #c0392b;
+  --gray: #8a9a8e;
+  --card-shadow: 0 4px 20px rgba(31,66,54,0.12);
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--green); min-height: 100vh; overflow-x: hidden; }
+
+/* HEADER */
+.app-header { background: var(--green); padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+.app-header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--gold); letter-spacing: 3px; line-height: 1; }
+.sync-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 20px; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; transition: background 0.3s; }
+.sync-dot.live { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+.sync-dot.saving { background: var(--gold); animation: pulse 0.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ROLE SCREEN */
+#role-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; background: var(--green); }
+.role-logo { font-family: 'Bebas Neue', sans-serif; font-size: 72px; color: var(--gold); letter-spacing: 6px; line-height: 1; text-align: center; margin-bottom: 4px; }
+.role-tagline { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 48px; }
+.role-cards { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 360px; }
+.role-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(201,169,97,0.3); border-radius: 16px; padding: 20px 24px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 18px; }
+.role-card:hover, .role-card:active { background: rgba(201,169,97,0.15); border-color: var(--gold); transform: translateY(-1px); }
+.role-icon { font-size: 32px; }
+.role-label { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); letter-spacing: 2px; line-height: 1; }
+.role-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+
+/* SCREENS */
+.screen { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+.screen.active { display: block; }
+
+/* CARDS */
+.card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); margin-bottom: 16px; }
+.card-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--green); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--cream); }
+
+/* FORMS */
+label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray); margin-bottom: 6px; }
+input, select { width: 100%; padding: 11px 14px; border: 2px solid #e8ede9; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--green); background: #fafcfa; transition: border-color 0.2s; outline: none; -webkit-appearance: none; }
+input:focus, select:focus { border-color: var(--green); }
+.form-row { margin-bottom: 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* BUTTONS */
+.btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; text-align: center; }
+.btn-primary { background: linear-gradient(135deg, var(--green), var(--green-mid)); color: var(--gold); }
+.btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--green); }
+.btn-gold:hover { opacity: 0.92; transform: translateY(-1px); }
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; display: inline-block; width: auto; font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: 0; border: 2px solid transparent; cursor: pointer; }
+.btn-outline { background: transparent; border: 2px solid var(--green); color: var(--green); }
+.btn-danger { background: #ffeaea; color: var(--red); border-color: transparent; }
+
+/* PLAYER LIST */
+.player-row { display: grid; grid-template-columns: 1fr 70px 90px 36px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--cream); }
+.player-row:last-child { border-bottom: none; }
+.player-row input { margin: 0; }
+.del-btn { background: none; border: none; color: #ccc; font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; border-radius: 6px; }
+.del-btn:hover { color: var(--red); background: #ffeaea; }
+
+/* HOLE SETUP TABLE */
+.hole-setup-row { display: grid; grid-template-columns: 38px 58px 68px 44px; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--cream); }
+.hole-setup-row:last-child { border-bottom: none; }
+.hole-num-label { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--green); padding-left: 4px; }
+.hole-setup-row input { padding: 7px; text-align: center; font-size: 14px; }
+
+/* HOLE PROGRESS */
+.hole-progress { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+.hole-pip { width: 28px; height: 28px; border-radius: 7px; background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--gray); cursor: pointer; border: 2px solid transparent; transition: all 0.15s; position: relative; }
+.hole-pip.done { background: var(--green); color: var(--gold); }
+.hole-pip.current { border-color: var(--gold); background: white; color: var(--green); }
+.hole-pip.ctp-hole::after { content: '⛳'; position: absolute; font-size: 7px; bottom: -3px; right: -3px; }
+
+/* SCORECARD */
+.scorecard-player { border-bottom: 1px solid var(--cream); padding: 14px 0; }
+.scorecard-player:last-child { border-bottom: none; }
+.player-name-score { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.player-name-label { font-weight: 600; font-size: 15px; }
+.hcp-badge { font-size: 11px; background: var(--cream); color: var(--gray); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.score-input-row { display: flex; align-items: center; gap: 10px; }
+.score-stepper { display: flex; flex-direction: column; gap: 4px; }
+.step-btn { width: 36px; height: 36px; border: 2px solid var(--green); background: white; border-radius: 8px; font-size: 22px; line-height: 1; cursor: pointer; color: var(--green); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.step-btn:active { background: var(--cream); }
+.net-score-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+.net-score-val { font-size: 18px; font-weight: 700; color: var(--green-light); }
+
+/* CTP */
+.ctp-selector { margin-top: 12px; background: #fffbf0; border: 1px solid #f0d98a; border-radius: 10px; padding: 12px 14px; }
+.ctp-selector label { color: #9a7c20; margin-bottom: 8px; }
+.ctp-player-btn { display: inline-block; margin: 3px; padding: 6px 14px; border-radius: 20px; border: 2px solid #e8c96e; background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: #7a6010; transition: all 0.15s; }
+.ctp-player-btn.selected { background: var(--gold); border-color: var(--gold); color: var(--green); }
+
+/* LEADERBOARD */
+.lb-header { display: grid; grid-template-columns: 32px 1fr 55px 55px 55px; gap: 4px; padding: 8px 12px; background: var(--green); border-radius: 10px 10px 0 0; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+.lb-row { display: grid; grid-template-columns: 32px 1fr 55px 55px 55px; gap: 4px; padding: 12px; border-bottom: 1px solid var(--cream); align-items: center; }
+.lb-row:last-child { border-bottom: none; }
+.lb-row.highlight { background: #fffbf0; }
+.lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--gray); }
+.lb-rank.gold { color: #c9a500; }
+.lb-rank.silver { color: #8a9a8e; }
+.lb-rank.bronze { color: #a0522d; }
+.lb-name { font-weight: 600; font-size: 14px; }
+.lb-group { font-size: 11px; color: var(--gray); }
+.lb-val { text-align: center; font-weight: 700; font-size: 15px; }
+.lb-val.skins { color: var(--green-light); }
+.lb-val.ctp { color: #9a7c20; }
+
+/* SKINS HOLES */
+.skins-hole-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--cream); font-size: 14px; }
+.skins-hole-row:last-child { border-bottom: none; }
+.hole-label { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--green); letter-spacing: 1px; min-width: 70px; }
+.skin-winner { font-weight: 600; color: var(--green-light); }
+.skin-carry { color: var(--gold); font-style: italic; font-size: 12px; }
+.skin-worth { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--gold); }
+
+/* PAYOUTS */
+.payout-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--cream); }
+.payout-row:last-child { border-bottom: none; }
+.payout-name { font-weight: 600; font-size: 15px; }
+.payout-type { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.payout-amount { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--gold); letter-spacing: 1px; }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; background: var(--cream); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+.tab { flex: 1; padding: 9px 4px; border: none; background: transparent; border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--gray); cursor: pointer; transition: all 0.2s; text-align: center; }
+.tab.active { background: var(--white); color: var(--green); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+/* STATUS */
+.status-banner { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-align: center; }
+.status-banner.info { background: #e8f4fd; color: #1a5276; }
+.status-banner.success { background: #e8f8f0; color: #1e7a4a; }
+.status-banner.warning { background: #fffbf0; color: #9a7c20; }
+.status-banner.error { background: #fdeaea; color: var(--red); }
+
+/* MISC */
+.nav-back { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.7); font-size: 13px; cursor: pointer; background: none; border: none; padding: 0; }
+.nav-back:hover { color: white; }
+.hole-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.hole-nav-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--green); letter-spacing: 2px; }
+.hole-nav-sub { font-size: 12px; color: var(--gray); text-align: center; }
+.divider { height: 1px; background: var(--cream); margin: 16px 0; }
+.text-center { text-align: center; }
+.text-sm { font-size: 13px; color: var(--gray); }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.tag-green { background: #e0f0e8; color: var(--green); }
+.tag-gold { background: #fff3d0; color: #8a6500; }
+.tag-gray { background: var(--cream); color: var(--gray); }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--gray); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+.loading { text-align: center; padding: 40px; color: var(--gray); font-size: 14px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--cream); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.locked-banner { background: linear-gradient(135deg, var(--green), var(--green-mid)); color: white; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.locked-banner .icon { font-size: 24px; }
+.locked-banner .text { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+.locked-banner .label { font-weight: 700; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<!-- ROLE SELECTION -->
+<div id="role-screen">
+  <img src="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png" alt="Play 18" style="width:190px;height:auto;margin-bottom:20px;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.5));"/>
+  <div class="role-tagline">The Game Within the Game</div>
+  <div class="role-cards">
+    <div class="role-card" onclick="enterRole('admin')">
+      <div class="role-icon">⚙️</div>
+      <div>
+        <div class="role-label">Admin Setup</div>
+        <div class="role-desc">Add players, handicaps &amp; hole info</div>
+      </div>
+    </div>
+    <div class="role-card" onclick="showGroupSelect()">
+      <div class="role-icon">⛳</div>
+      <div>
+        <div class="role-label">Scorekeeper</div>
+        <div class="role-desc">Enter scores for your group</div>
+      </div>
+    </div>
+    <div class="role-card" onclick="enterRole('leaderboard')">
+      <div class="role-icon">🏆</div>
+      <div>
+        <div class="role-label">Leaderboard</div>
+        <div class="role-desc">Live standings &amp; payouts</div>
+      </div>
+    </div>
+  </div>
+  <div id="group-select" style="display:none;width:100%;max-width:360px;margin-top:16px;">
+    <div style="color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:10px;text-align:center;">Select your group</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="group-btns"></div>
+    <div style="text-align:center;margin-top:12px;">
+      <span onclick="document.getElementById('group-select').style.display='none'" style="color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;">← Back</span>
+    </div>
+  </div>
+</div>
+
+<!-- APP HEADER -->
+<div id="app-header" class="app-header" style="display:none;">
+  <div>
+    <button class="nav-back" onclick="goHome()">← Home</button>
+    <img src="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png" alt="Play 18" style="height:38px;width:auto;margin-top:2px;"/>
+  </div>
+  <div class="sync-badge">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">Syncing…</span>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div id="admin-screen" class="screen">
+  <div id="admin-status"></div>
+  <div class="card" id="players-section">
+    <div class="card-title">👥 Players &amp; Handicaps</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 90px 36px;gap:8px;padding:4px 0 8px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Name</div>
+      <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">HCP</div>
+      <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">Group</div>
+      <div></div>
+    </div>
+    <div id="players-list"></div>
+    <button class="btn-sm btn-outline mt-8" onclick="addPlayer()" style="margin-top:12px;">+ Add Player</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏌️ Hole Setup</div>
+    <div class="text-sm mb-8">Par, stroke index (1=hardest), and check ⛳ for CTP holes.</div>
+    <div style="display:grid;grid-template-columns:38px 58px 68px 44px;gap:6px;padding:4px 4px 8px;font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;">
+      <div>Hole</div><div>Par</div><div>Stroke Idx</div><div>CTP</div>
+    </div>
+    <div id="holes-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💰 Stakes</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Skins Buy-in ($)</label>
+        <input type="number" id="skins-buyin" value="20" min="0"/>
+      </div>
+      <div class="form-row">
+        <label>CTP Buy-in ($)</label>
+        <input type="number" id="ctp-buyin" value="10" min="0"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Handicap %</label>
+      <select id="hcp-pct">
+        <option value="50" selected>50% Handicap</option>
+        <option value="75">75% Handicap</option>
+        <option value="100">100% Handicap</option>
+        <option value="25">25% Handicap</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="saveAndLock()">🔒 Save &amp; Lock Round</button>
+  <div class="text-sm text-center mt-8" style="margin-bottom:24px;" id="admin-hint">Once locked, scorekeepers can begin entering scores.</div>
+</div>
+
+<!-- SCOREKEEPER SCREEN -->
+<div id="scorekeeper-screen" class="screen">
+  <div id="sk-loading" class="loading"><div class="spinner"></div>Loading round data…</div>
+  <div id="sk-content" style="display:none;">
+    <div id="sk-status"></div>
+    <div class="card" style="padding:14px 16px;">
+      <div class="flex-between mb-8">
+        <div style="font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;">Hole Progress</div>
+        <div id="sk-group-label" class="tag tag-green">Group 1</div>
+      </div>
+      <div class="hole-progress" id="hole-pips"></div>
+    </div>
+    <div class="card">
+      <div class="hole-nav">
+        <button class="btn-sm btn-outline" onclick="changeHole(-1)" id="prev-hole-btn">◀ Prev</button>
+        <div class="text-center">
+          <div class="hole-nav-title" id="hole-title">HOLE 1</div>
+          <div class="hole-nav-sub" id="hole-meta">Par 4 · SI #1</div>
+        </div>
+        <button class="btn-sm btn-gold" onclick="changeHole(1)" id="next-hole-btn">Next ▶</button>
+      </div>
+      <div id="scorecard-players"></div>
+      <div id="ctp-section" style="display:none;" class="ctp-selector mt-8">
+        <label>⛳ Closest to Pin Winner</label>
+        <div id="ctp-players"></div>
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="saveHole()" id="save-hole-btn">Save Hole Scores</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD SCREEN -->
+<div id="leaderboard-screen" class="screen">
+  <div id="lb-loading" class="loading"><div class="spinner"></div>Loading leaderboard…</div>
+  <div id="lb-content" style="display:none;">
+    <div class="tabs">
+      <button class="tab active" onclick="showLbTab('standings')" id="tab-standings">Standings</button>
+      <button class="tab" onclick="showLbTab('skins')" id="tab-skins">Skins</button>
+      <button class="tab" onclick="showLbTab('ctp')" id="tab-ctp">CTP</button>
+      <button class="tab" onclick="showLbTab('payouts')" id="tab-payouts">Payouts</button>
+    </div>
+    <div id="lb-standings" class="lb-tab">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="lb-header">
+          <div>#</div><div>Player</div><div style="text-align:center;">Net</div><div style="text-align:center;">Skins</div><div style="text-align:center;">CTP</div>
+        </div>
+        <div id="standings-rows"></div>
+      </div>
+      <div class="text-sm text-center mt-8" id="holes-complete-label"></div>
+    </div>
+    <div id="lb-skins" class="lb-tab" style="display:none;">
+      <div class="card"><div class="card-title">🏌️ Skins by Hole</div><div id="skins-detail"></div></div>
+    </div>
+    <div id="lb-ctp" class="lb-tab" style="display:none;">
+      <div class="card"><div class="card-title">⛳ Closest to Pin</div><div id="ctp-detail"></div></div>
+    </div>
+    <div id="lb-payouts" class="lb-tab" style="display:none;">
+      <div class="card"><div class="card-title">💰 Payout Summary</div><div id="payouts-detail"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// CONFIG
+const BIN_ID = '69c869005fdde574550c4bac';
+const API_KEY = '$2a$10$WGvFT1DgrFmcyhLQ6t2au.72Kw7bBnCMqBmAgAuclxoTijfhQijtq';
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const HDRS = { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY };
+
+// STATE
+let role = null, myGroup = null, currentHole = 1, gameData = null, pollTimer = null, isSaving = false;
+let players = [];
+let holes = Array.from({length:18}, (_,i) => ({ par: 4, si: i+1, ctp: false }));
+
+// ── NAVIGATION ──
+function showGroupSelect() {
+  // Build group buttons dynamically based on locked game data if available
+  fetchData().then(data => {
+    const numGroups = data.locked ? (data.numGroups || 4) : 4;
+    const nums = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'];
+    const container = document.getElementById('group-btns');
+    container.innerHTML = '';
+    for (let g = 1; g <= numGroups; g++) {
+      const card = document.createElement('div');
+      card.className = 'role-card';
+      card.style.cssText = 'flex-direction:column;text-align:center;padding:16px;';
+      card.innerHTML = `<div class="role-icon">${nums[g-1]||g}</div><div class="role-label" style="font-size:18px;">Group ${g}</div>`;
+      card.onclick = () => enterRole('scorekeeper', g);
+      container.appendChild(card);
+    }
+  }).catch(() => {
+    // fallback: show 4 groups
+    const container = document.getElementById('group-btns');
+    container.innerHTML = '';
+    ['1️⃣','2️⃣','3️⃣','4️⃣'].forEach((emoji, i) => {
+      const card = document.createElement('div');
+      card.className = 'role-card';
+      card.style.cssText = 'flex-direction:column;text-align:center;padding:16px;';
+      card.innerHTML = `<div class="role-icon">${emoji}</div><div class="role-label" style="font-size:18px;">Group ${i+1}</div>`;
+      card.onclick = () => enterRole('scorekeeper', i+1);
+      container.appendChild(card);
+    });
+  });
+  document.getElementById('group-select').style.display = 'block';
+}
+
+function enterRole(r, group) {
+  role = r; myGroup = group || null;
+  document.getElementById('role-screen').style.display = 'none';
+  document.getElementById('app-header').style.display = 'flex';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (r === 'admin') { document.getElementById('admin-screen').classList.add('active'); loadAdminData(); }
+  else if (r === 'scorekeeper') { document.getElementById('scorekeeper-screen').classList.add('active'); loadScorekeeperData(); }
+  else if (r === 'leaderboard') {
+    document.getElementById('leaderboard-screen').classList.add('active');
+    loadLeaderboard();
+    pollTimer = setInterval(loadLeaderboard, 15000);
+  }
+}
+
+function goHome() {
+  clearInterval(pollTimer); role = null; myGroup = null; gameData = null;
+  document.getElementById('role-screen').style.display = 'flex';
+  document.getElementById('app-header').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('group-select').style.display = 'none';
+  setSyncState('idle');
+}
+
+// ── SYNC ──
+function setSyncState(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot) return;
+  dot.className = 'sync-dot';
+  if (state === 'live') { dot.classList.add('live'); lbl.textContent = 'Live'; }
+  else if (state === 'saving') { dot.classList.add('saving'); lbl.textContent = 'Saving…'; }
+  else { lbl.textContent = 'Offline'; }
+}
+
+// ── API ──
+async function fetchData() {
+  const res = await fetch(BIN_URL + '/latest', { headers: { 'X-Access-Key': API_KEY } });
+  const json = await res.json();
+  return json.record || {};
+}
+async function saveData(data) {
+  setSyncState('saving');
+  const res = await fetch(BIN_URL, { method: 'PUT', headers: HDRS, body: JSON.stringify(data) });
+  setSyncState('live');
+  return res.ok;
+}
+
+// ── ADMIN ──
+function buildHolesUI() {
+  const list = document.getElementById('holes-list');
+  list.innerHTML = '';
+  holes.forEach((h, i) => {
+    const row = document.createElement('div');
+    row.className = 'hole-setup-row';
+    row.innerHTML = `
+      <div class="hole-num-label">${i+1}</div>
+      <input type="number" min="3" max="6" value="${h.par}" onchange="holes[${i}].par=+this.value"/>
+      <input type="number" min="1" max="18" value="${h.si}" onchange="holes[${i}].si=+this.value"/>
+      <div style="display:flex;align-items:center;justify-content:center;">
+        <input type="checkbox" ${h.ctp?'checked':''} onchange="holes[${i}].ctp=this.checked" style="width:20px;height:20px;padding:0;cursor:pointer;border-radius:4px;"/>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function buildPlayersUI() {
+  const list = document.getElementById('players-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    // Build group options dynamically
+    const numGroups = +document.getElementById('num-groups')?.value || 4;
+    let groupOpts = '';
+    for (let g = 1; g <= numGroups; g++) {
+      groupOpts += `<option value="${g}" ${p.group===g?'selected':''}>Group ${g}</option>`;
+    }
+    row.innerHTML = `
+      <input type="text" placeholder="Player name" value="${p.name}" oninput="players[${i}].name=this.value" style="font-size:14px;padding:8px 10px;"/>
+      <input type="number" min="0" max="54" value="${p.hcp}" oninput="players[${i}].hcp=+this.value" style="font-size:14px;padding:8px;text-align:center;" placeholder="HCP"/>
+      <select onchange="players[${i}].group=+this.value" style="padding:8px;font-size:13px;">${groupOpts}</select>
+      <button class="del-btn" onclick="removePlayer(${i})">×</button>`;
+    list.appendChild(row);
+  });
+}
+
+function addPlayer() {
+  const g = players.length < 5 ? 1 : players.length < 10 ? 2 : players.length < 14 ? 3 : 4;
+  players.push({ name: '', hcp: 0, group: g });
+  buildPlayersUI();
+}
+function removePlayer(i) { players.splice(i,1); buildPlayersUI(); }
+
+async function loadAdminData() {
+  try {
+    const data = await fetchData();
+    setSyncState('live');
+    if (data.locked) { showAdminLocked(data); return; }
+    if (data.players && data.players.length) players = data.players;
+    else { for(let i=0;i<4;i++) addPlayer(); }
+    if (data.holes && data.holes.length===18) holes = data.holes;
+    if (data.skinsBuyin !== undefined) document.getElementById('skins-buyin').value = data.skinsBuyin;
+    if (data.ctpBuyin !== undefined) document.getElementById('ctp-buyin').value = data.ctpBuyin;
+    if (data.hcpPct !== undefined) document.getElementById('hcp-pct').value = data.hcpPct;
+    buildPlayersUI();
+    buildHolesUI();
+  } catch(e) { showStatus('admin-status','error','Could not connect. Check your connection.'); }
+}
+
+function showAdminLocked(data) {
+  document.getElementById('players-section').innerHTML = `
+    <div class="locked-banner">
+      <div class="icon">🔒</div>
+      <div><div class="label">Round is Live</div><div class="text">${data.players.length} players · ${data.holes.filter(h=>h.ctp).length} CTP holes · Skins $${data.skinsBuyin} · CTP $${data.ctpBuyin}</div></div>
+    </div>
+    <div class="text-sm text-center mb-8">Scores are being entered.</div>
+    <button class="btn-sm btn-danger" onclick="resetRound()">🗑️ Reset Entire Round</button>`;
+  document.querySelectorAll('#admin-screen .card').forEach((c,i) => { if(i>0) c.style.display='none'; });
+  const lockBtn = document.querySelector('#admin-screen .btn.btn-primary');
+  if (lockBtn) lockBtn.style.display='none';
+  const hint = document.getElementById('admin-hint');
+  if (hint) hint.style.display='none';
+}
+
+async function saveAndLock() {
+  const validPlayers = players.filter(p => p.name.trim());
+  if (validPlayers.length < 2) { showStatus('admin-status','error','Add at least 2 players.'); return; }
+  const ctpCount = holes.filter(h=>h.ctp).length;
+  if (ctpCount === 0 && !confirm('No CTP holes selected. Continue anyway?')) return;
+  const numGroups = Math.max(...validPlayers.map(p=>p.group));
+  const data = {
+    locked: true, players: validPlayers, holes, numGroups,
+    skinsBuyin: +document.getElementById('skins-buyin').value,
+    ctpBuyin: +document.getElementById('ctp-buyin').value,
+    hcpPct: +document.getElementById('hcp-pct').value,
+    scores: {}, ctpWinners: {}
+  };
+  const ok = await saveData(data);
+  if (ok) { showStatus('admin-status','success','Round locked! Share this page with your players.'); showAdminLocked(data); }
+  else { showStatus('admin-status','error','Save failed. Try again.'); }
+}
+
+async function resetRound() {
+  if (!confirm('Reset the round? ALL scores will be permanently deleted.')) return;
+  await saveData({ game: 'play18' });
+  location.reload();
+}
+
+// ── SCOREKEEPER ──
+async function loadScorekeeperData() {
+  document.getElementById('sk-loading').style.display='block';
+  document.getElementById('sk-content').style.display='none';
+  try {
+    gameData = await fetchData();
+    setSyncState('live');
+    if (!gameData.locked) {
+      document.getElementById('sk-loading').innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Admin hasn\'t locked the round yet.<br>Check back soon.</p></div>';
+      return;
+    }
+    document.getElementById('sk-loading').style.display='none';
+    document.getElementById('sk-content').style.display='block';
+    document.getElementById('sk-group-label').textContent = `Group ${myGroup}`;
+    buildHolePips();
+    renderCurrentHole();
+    pollTimer = setInterval(async () => { gameData = await fetchData(); renderCurrentHole(); buildHolePips(); }, 20000);
+  } catch(e) {
+    document.getElementById('sk-loading').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Connection error. Please reload.</p></div>';
+  }
+}
+
+function buildHolePips() {
+  const container = document.getElementById('hole-pips');
+  container.innerHTML = '';
+  gameData.holes.forEach((h, i) => {
+    const hNum = i+1;
+    const myPlayers = gameData.players.filter(p => p.group === myGroup);
+    const allEntered = myPlayers.every(p => {
+      const pIdx = gameData.players.indexOf(p);
+      return gameData.scores[`p_${pIdx}_h_${hNum}`] !== undefined;
+    });
+    const pip = document.createElement('div');
+    let cls = 'hole-pip';
+    if (allEntered) cls += ' done';
+    if (hNum === currentHole) cls += ' current';
+    if (h.ctp) cls += ' ctp-hole';
+    pip.className = cls;
+    pip.textContent = hNum;
+    pip.onclick = () => { currentHole = hNum; renderCurrentHole(); buildHolePips(); };
+    container.appendChild(pip);
+  });
+}
+
+function renderCurrentHole() {
+  const h = gameData.holes[currentHole-1];
+  document.getElementById('hole-title').textContent = `HOLE ${currentHole}`;
+  document.getElementById('hole-meta').textContent = `Par ${h.par} · SI #${h.si}`;
+  const myPlayers = gameData.players.filter(p => p.group === myGroup);
+  const container = document.getElementById('scorecard-players');
+  container.innerHTML = '';
+
+  myPlayers.forEach(p => {
+    const pIdx = gameData.players.indexOf(p);
+    const scoreKey = `p_${pIdx}_h_${currentHole}`;
+    const existing = gameData.scores[scoreKey] !== undefined ? gameData.scores[scoreKey] : '';
+    const strokes = getStrokesOnHole(p.hcp, gameData.hcpPct, h.si);
+    const netDisplay = existing !== '' ? (existing - strokes) : '—';
+
+    const div = document.createElement('div');
+    div.className = 'scorecard-player';
+    div.innerHTML = `
+      <div class="player-name-score">
+        <div>
+          <div class="player-name-label">${p.name}</div>
+          <div class="net-score-label">${strokes > 0 ? `Gets ${strokes} stroke(s) here` : 'No strokes on this hole'}</div>
+        </div>
+        <span class="hcp-badge">HCP ${p.hcp} → ${Math.round(p.hcp * gameData.hcpPct / 100)} total</span>
+      </div>
+      <div class="score-input-row">
+        <div class="score-stepper">
+          <button class="step-btn" onclick="adjustScore('inp_${pIdx}',1,${strokes},'netlbl_${pIdx}')">+</button>
+          <button class="step-btn" onclick="adjustScore('inp_${pIdx}',-1,${strokes},'netlbl_${pIdx}')">−</button>
+        </div>
+        <input type="number" id="inp_${pIdx}" min="1" max="15" value="${existing}" placeholder="${h.par}"
+          style="font-size:28px;padding:10px;width:80px;text-align:center;"
+          oninput="liveNet(this,${strokes},'netlbl_${pIdx}')"/>
+        <div>
+          <div class="net-score-label">Net</div>
+          <div class="net-score-val" id="netlbl_${pIdx}">${netDisplay}</div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+
+  // CTP
+  const ctpSec = document.getElementById('ctp-section');
+  if (h.ctp) {
+    ctpSec.style.display = 'block';
+    const ctpPlayers = document.getElementById('ctp-players');
+    ctpPlayers.innerHTML = '';
+    const currentCtp = gameData.ctpWinners && gameData.ctpWinners[String(currentHole)];
+    gameData.players.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = `ctp-player-btn${currentCtp === p.name ? ' selected' : ''}`;
+      btn.textContent = p.name;
+      btn.onclick = () => {
+        document.querySelectorAll('.ctp-player-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (!gameData.ctpWinners) gameData.ctpWinners = {};
+        gameData.ctpWinners[String(currentHole)] = p.name;
+      };
+      ctpPlayers.appendChild(btn);
+    });
+  } else {
+    ctpSec.style.display = 'none';
+  }
+
+  document.getElementById('prev-hole-btn').disabled = currentHole === 1;
+  document.getElementById('next-hole-btn').disabled = currentHole === 18;
+}
+
+function liveNet(input, strokes, labelId) {
+  const v = parseInt(input.value);
+  document.getElementById(labelId).textContent = isNaN(v) ? '—' : v - strokes;
+}
+
+function adjustScore(inputId, delta, strokes, labelId) {
+  const inp = document.getElementById(inputId);
+  const cur = parseInt(inp.value) || 0;
+  inp.value = Math.max(1, cur + delta);
+  liveNet(inp, strokes, labelId);
+}
+
+function changeHole(dir) {
+  const next = currentHole + dir;
+  if (next < 1 || next > 18) return;
+  currentHole = next;
+  renderCurrentHole();
+  buildHolePips();
+}
+
+async function saveHole() {
+  if (isSaving) return;
+  isSaving = true;
+  const btn = document.getElementById('save-hole-btn');
+  btn.textContent = 'Saving…';
+  const myPlayers = gameData.players.filter(p => p.group === myGroup);
+  let allFilled = true;
+  myPlayers.forEach(p => {
+    const pIdx = gameData.players.indexOf(p);
+    const val = parseInt(document.getElementById(`inp_${pIdx}`).value);
+    if (isNaN(val) || val < 1) { allFilled = false; return; }
+    if (!gameData.scores) gameData.scores = {};
+    gameData.scores[`p_${pIdx}_h_${currentHole}`] = val;
+  });
+  if (!allFilled) {
+    showStatus('sk-status','error','Enter all scores before saving.');
+    btn.textContent = 'Save Hole Scores'; isSaving = false; return;
+  }
+  const ok = await saveData(gameData);
+  if (ok) {
+    showStatus('sk-status','success',`Hole ${currentHole} saved!`);
+    buildHolePips();
+    if (currentHole < 18) setTimeout(() => { currentHole++; renderCurrentHole(); buildHolePips(); }, 700);
+  } else {
+    showStatus('sk-status','error','Save failed. Try again.');
+  }
+  btn.textContent = 'Save Hole Scores'; isSaving = false;
+}
+
+// ── HANDICAP MATH ──
+function getStrokesOnHole(hcp, pct, si) {
+  const total = Math.round(hcp * pct / 100);
+  return si <= total ? 1 : 0;
+}
+function getNetScore(pIdx, holeNum, gd) {
+  const key = `p_${pIdx}_h_${holeNum}`;
+  if (gd.scores[key] === undefined) return null;
+  const strokes = getStrokesOnHole(gd.players[pIdx].hcp, gd.hcpPct, gd.holes[holeNum-1].si);
+  return gd.scores[key] - strokes;
+}
+
+// ── SKINS CALC ──
+function calculateSkins(gd) {
+  const skinsPerPlayer = {};
+  gd.players.forEach((_,i) => skinsPerPlayer[i] = 0);
+  const results = [];
+  let carryover = 0;
+
+  for (let h = 1; h <= 18; h++) {
+    const nets = gd.players.map((_,i) => getNetScore(i, h, gd));
+    const allIn = nets.every(n => n !== null);
+    if (!allIn) { results.push({ hole:h, winner:null, pending:true, worth:0 }); continue; }
+    const minNet = Math.min(...nets);
+    const winners = nets.reduce((a,n,i) => n===minNet?[...a,i]:a, []);
+    if (winners.length === 1) {
+      const worth = carryover + 1;
+      skinsPerPlayer[winners[0]] += worth;
+      results.push({ hole:h, winner:winners[0], carried:carryover>0, carryover, worth, pending:false, push:false });
+      carryover = 0;
+    } else {
+      results.push({ hole:h, winner:null, pending:false, push:true, worth:0 });
+      carryover++;
+    }
+  }
+  return { results, skinsPerPlayer };
+}
+
+// ── LEADERBOARD ──
+async function loadLeaderboard() {
+  try {
+    gameData = await fetchData();
+    setSyncState('live');
+    if (!gameData.locked || !gameData.players) {
+      document.getElementById('lb-loading').innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Round hasn\'t started yet.<br>Check back soon.</p></div>';
+      return;
+    }
+    document.getElementById('lb-loading').style.display='none';
+    document.getElementById('lb-content').style.display='block';
+    renderLeaderboard();
+  } catch(e) { setSyncState('idle'); }
+}
+
+function renderLeaderboard() {
+  const { results, skinsPerPlayer } = calculateSkins(gameData);
+  const totalSkinsPot = gameData.players.length * gameData.skinsBuyin;
+  const totalCtpPot = gameData.players.length * gameData.ctpBuyin;
+  const ctpHoleNums = gameData.holes.map((h,i) => h.ctp ? i+1 : null).filter(Boolean);
+  const ctpValue = ctpHoleNums.length > 0 ? totalCtpPot / ctpHoleNums.length : 0;
+  const totalSkinsWon = results.filter(r => r.winner !== null).reduce((s,r) => s + r.worth, 0);
+  const skinValue = totalSkinsWon > 0 ? totalSkinsPot / totalSkinsWon : 0;
+
+  // Player totals
+  const playerTotals = gameData.players.map((p, pIdx) => {
+    let totalNet = 0, holesPlayed = 0;
+    for (let h=1;h<=18;h++) {
+      const n = getNetScore(pIdx, h, gameData);
+      if (n !== null) { totalNet += n; holesPlayed++; }
+    }
+    const ctpWins = Object.values(gameData.ctpWinners||{}).filter(n=>n===p.name).length;
+    return { p, pIdx, totalNet, holesPlayed, skins: skinsPerPlayer[pIdx], ctpWins };
+  });
+  const sorted = [...playerTotals].sort((a,b) => b.skins - a.skins || a.totalNet - b.totalNet);
+
+  // Standings
+  const standingsEl = document.getElementById('standings-rows');
+  standingsEl.innerHTML = '';
+  sorted.forEach((row, rank) => {
+    const rankCls = rank===0?'gold':rank===1?'silver':rank===2?'bronze':'';
+    const div = document.createElement('div');
+    div.className = `lb-row${rank===0?' highlight':''}`;
+    div.innerHTML = `
+      <div class="lb-rank ${rankCls}">${rank+1}</div>
+      <div><div class="lb-name">${row.p.name}</div><div class="lb-group">Grp ${row.p.group} · ${row.holesPlayed}/18 holes</div></div>
+      <div class="lb-val">${row.holesPlayed > 0 ? row.totalNet : '—'}</div>
+      <div class="lb-val skins">${row.skins}</div>
+      <div class="lb-val ctp">${row.ctpWins}</div>`;
+    standingsEl.appendChild(div);
+  });
+  const holesIn = new Set(Object.keys(gameData.scores||{}).map(k => +k.split('_h_')[1]));
+  document.getElementById('holes-complete-label').textContent = `${holesIn.size} of 18 holes entered · Refreshes every 15s`;
+
+  // Skins detail
+  const skinsEl = document.getElementById('skins-detail');
+  skinsEl.innerHTML = '';
+  results.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'skins-hole-row';
+    const ctpMark = gameData.holes[r.hole-1].ctp ? ' ⛳' : '';
+    if (r.pending) {
+      div.innerHTML = `<div class="hole-label">HOLE ${r.hole}${ctpMark}</div><div class="text-sm">Not entered yet</div><div></div>`;
+    } else if (r.push) {
+      div.innerHTML = `<div class="hole-label">HOLE ${r.hole}${ctpMark}</div><div class="skin-carry">Push — carries over</div><div></div>`;
+    } else {
+      const name = gameData.players[r.winner].name;
+      const dollars = (r.worth * skinValue).toFixed(2);
+      div.innerHTML = `
+        <div class="hole-label">HOLE ${r.hole}${ctpMark}</div>
+        <div><div class="skin-winner">${name}</div>${r.carried?`<div class="skin-carry">+${r.carryover} carry</div>`:''}</div>
+        <div class="skin-worth">$${dollars}</div>`;
+    }
+    skinsEl.appendChild(div);
+  });
+  if (!results.some(r=>r.pending)) {
+    const s = document.createElement('div');
+    s.className = 'status-banner success mt-8';
+    s.textContent = `${totalSkinsWon} skin${totalSkinsWon!==1?'s':''} won · $${skinValue.toFixed(2)} each · Pot: $${totalSkinsPot}`;
+    skinsEl.appendChild(s);
+  }
+
+  // CTP detail
+  const ctpEl = document.getElementById('ctp-detail');
+  ctpEl.innerHTML = '';
+  ctpHoleNums.forEach(hNum => {
+    const winner = gameData.ctpWinners && gameData.ctpWinners[String(hNum)];
+    const div = document.createElement('div');
+    div.className = 'payout-row';
+    div.innerHTML = `
+      <div><div class="payout-name">Hole ${hNum}</div><div class="payout-type">Par ${gameData.holes[hNum-1].par} · Closest to Pin</div></div>
+      <div style="text-align:right;">${winner
+        ? `<div class="skin-winner">${winner}</div><div class="skin-worth" style="font-size:20px;">$${ctpValue.toFixed(2)}</div>`
+        : `<span class="tag tag-gray">TBD</span>`}</div>`;
+    ctpEl.appendChild(div);
+  });
+  const ctpSum = document.createElement('div');
+  ctpSum.className = 'status-banner info mt-8';
+  ctpSum.textContent = `$${ctpValue.toFixed(2)} per hole · ${ctpHoleNums.length} CTP holes · Pot: $${totalCtpPot}`;
+  ctpEl.appendChild(ctpSum);
+
+  // Payouts
+  const payoutsEl = document.getElementById('payouts-detail');
+  payoutsEl.innerHTML = '';
+  const payoutMap = {};
+  results.filter(r=>r.winner!==null).forEach(r => {
+    const name = gameData.players[r.winner].name;
+    if (!payoutMap[name]) payoutMap[name] = { skins:0, ctp:0 };
+    payoutMap[name].skins += r.worth * skinValue;
+  });
+  Object.entries(gameData.ctpWinners||{}).forEach(([,name]) => {
+    if (!payoutMap[name]) payoutMap[name] = { skins:0, ctp:0 };
+    payoutMap[name].ctp += ctpValue;
+  });
+  const sorted2 = Object.entries(payoutMap).sort((a,b) => (b[1].skins+b[1].ctp)-(a[1].skins+a[1].ctp));
+  if (sorted2.length === 0) {
+    payoutsEl.innerHTML = '<div class="empty-state"><div class="icon">⛳</div><p>Payouts will appear as holes are completed.</p></div>';
+  } else {
+    sorted2.forEach(([name, e]) => {
+      const total = e.skins + e.ctp;
+      const div = document.createElement('div');
+      div.className = 'payout-row';
+      div.innerHTML = `
+        <div>
+          <div class="payout-name">${name}</div>
+          <div class="payout-type">${e.skins>0?`Skins: $${e.skins.toFixed(2)}`:''}${e.skins>0&&e.ctp>0?' · ':''}${e.ctp>0?`CTP: $${e.ctp.toFixed(2)}`:''}</div>
+        </div>
+        <div class="payout-amount">$${total.toFixed(2)}</div>`;
+      payoutsEl.appendChild(div);
+    });
+    const totalPaid = sorted2.reduce((s,[,e])=>s+e.skins+e.ctp,0);
+    const totalPot = totalSkinsPot + totalCtpPot;
+    const note = document.createElement('div');
+    note.className = `status-banner ${results.some(r=>r.pending)?'warning':'success'} mt-8`;
+    note.textContent = results.some(r=>r.pending)
+      ? `Round in progress · $${totalPaid.toFixed(2)} of $${totalPot} allocated`
+      : `Round complete · Total paid out: $${totalPaid.toFixed(2)}`;
+    payoutsEl.appendChild(note);
+  }
+}
+
+function showLbTab(tab) {
+  document.querySelectorAll('.lb-tab').forEach(t => t.style.display='none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`lb-${tab}`).style.display='block';
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ── UTILS ──
+function showStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<div class="status-banner ${type}">${msg}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 4000);
+}
+
+// Init
+buildHolesUI();
+</script>
+</body>
+</html>
+<script>
+// ══════════════════════════════════════
+// PWA — INLINE MANIFEST + SERVICE WORKER
+// ══════════════════════════════════════
+
+// 1. Inject web app manifest as a blob link
+(function injectManifest() {
+  const manifest = {
+    name: 'Play 18',
+    short_name: 'Play 18',
+    description: 'Skins & CTP Golf Tracker — The Game Within the Game',
+    start_url: '.',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#1f4236',
+    theme_color: '#1f4236',
+    icons: [
+      {
+        src: 'https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any maskable'
+      },
+      {
+        src: 'https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable'
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = url;
+  document.head.appendChild(link);
+})();
+
+// 2. Register inline service worker via blob
+(function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+
+  const swCode = `
+    const CACHE = 'play18-v1';
+    const ASSETS = []; // single file — nothing extra to cache
+
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+    });
+
+    self.addEventListener('activate', e => {
+      e.waitUntil(
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+      );
+    });
+
+    // Network first, cache fallback — keeps data fresh
+    self.addEventListener('fetch', e => {
+      // Don't intercept JSONBin API calls — always need live data
+      if (e.request.url.includes('jsonbin.io')) return;
+
+      e.respondWith(
+        fetch(e.request)
+          .then(res => {
+            // Cache successful GET responses
+            if (e.request.method === 'GET' && res.status === 200) {
+              const clone = res.clone();
+              caches.open(CACHE).then(cache => cache.put(e.request, clone));
+            }
+            return res;
+          })
+          .catch(() => caches.match(e.request))
+      );
+    });
+  `;
+
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+
+  navigator.serviceWorker.register(swUrl, { scope: '/' })
+    .then(reg => {
+      console.log('[Play18 SW] Registered', reg.scope);
+    })
+    .catch(err => {
+      // Blob SW may be blocked on some browsers — silent fail is fine
+      console.log('[Play18 SW] Could not register:', err.message);
+    });
+})();
+
+// 3. Install prompt (Android Chrome) — iOS shows its own banner
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('install-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #1f4236; color: white; border-radius: 14px;
+    padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 9999;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    max-width: 340px; width: calc(100% - 32px);
+    border: 1px solid rgba(201,169,97,0.4);
+  `;
+  banner.innerHTML = `
+    <img src="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png" style="width:40px;height:40px;border-radius:8px;flex-shrink:0;"/>
+    <div style="flex:1;">
+      <div style="font-weight:700;color:#c9a961;">Add Play 18 to Home Screen</div>
+      <div style="font-size:12px;opacity:0.7;margin-top:2px;">Play offline &amp; skip the browser</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+      <button onclick="installApp()" style="background:#c9a961;color:#1f4236;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Install</button>
+      <button onclick="dismissInstall()" style="background:transparent;color:rgba(255,255,255,0.5);border:none;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Not now</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+}
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(choice => {
+    if (choice.outcome === 'accepted') dismissInstall();
+    deferredPrompt = null;
+  });
+}
+
+function dismissInstall() {
+  const b = document.getElementById('install-banner');
+  if (b) b.remove();
+}
+
+// 4. iOS "Add to Home Screen" hint — shows once per session on Safari
+(function iosHint() {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.navigator.standalone === true;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if (isIos && isSafari && !isInStandalone) {
+    setTimeout(() => {
+      if (document.getElementById('install-banner')) return; // Android banner already showing
+      const hint = document.createElement('div');
+      hint.id = 'install-banner';
+      hint.style.cssText = `
+        position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+        background: #1f4236; color: white; border-radius: 14px;
+        padding: 14px 18px; text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 9999;
+        font-family: 'DM Sans', sans-serif; font-size: 13px;
+        max-width: 320px; width: calc(100% - 32px);
+        border: 1px solid rgba(201,169,97,0.4);
+      `;
+      hint.innerHTML = `
+        <img src="https://raw.githubusercontent.com/tkdbrad03/assets/main/play-18.png" style="width:48px;height:48px;border-radius:10px;margin-bottom:10px;"/>
+        <div style="font-weight:700;color:#c9a961;margin-bottom:4px;">Add Play 18 to Home Screen</div>
+        <div style="opacity:0.75;line-height:1.5;">Tap <strong style="color:#c9a961;">Share</strong> <span style="font-size:16px;">⎋</span> then <strong style="color:#c9a961;">"Add to Home Screen"</strong></div>
+        <button onclick="this.closest('#install-banner').remove()" style="margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:8px;padding:6px 18px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Got it</button>
+      `;
+      document.body.appendChild(hint);
+    }, 3000); // 3 second delay so it doesn't block the splash
+  }
+})();
+</script>
