@@ -1142,7 +1142,7 @@ async function savePlayerGroup(pIdx) {
   gameData.players[pIdx].group = newGroup;
   const ok = await saveData(gameData);
   if (ok) {
-    document.querySelector('div[style*="z-index:10000"]').remove();
+    document.querySelectorAll('div[style*="z-index:10000"]').forEach(el => el.remove());
     document.getElementById('scorecard-overlay').remove();
     showPlayerScorecard(pIdx);
     showStatus('lb-content', 'success', `${gameData.players[pIdx].name} moved to Group ${newGroup}.`);
